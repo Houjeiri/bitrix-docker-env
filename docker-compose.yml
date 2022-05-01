@@ -1,0 +1,87 @@
+version: '1.0'
+
+networks:
+  bitrix:
+
+volumes:
+  bitrix_db:
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx.dockerfile
+    environment:
+      TZ: "Europe/Minsk"
+    depends_on:
+      - php
+      - mysql
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./www:/var/www/html:delegated
+      - ./log/access.log:/var/log/access.log
+      - ./log/error.log:/var/log/error.log
+    networks:
+      bitrix:
+        aliases:
+          - docker-bitrix.com
+          - www.docker-bitrix.com
+    extra_hosts:
+      - "docker-bitrix.com:127.0.0.1"
+      - "www.docker-bitrix.com:127.0.0.1"
+
+  mysql:
+    image: mysql:5.7
+    environment:
+      MYSQL_DATABASE: bitrix
+      MYSQL_PASSWORD: bitrix
+      MYSQL_USER: bitrix
+      MYSQL_ROOT_PASSWORD: secret
+      TZ: "Europe/Minsk"
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci --init-connect='SET NAMES utf8;' --init-connect='SET collation_connection = "utf8_unicode_ci"' --sql_mode="" --innodb_strict_mode=0 --innodb-flush-log-at-trx-commit=0 --transaction-isolation=READ-COMMITTED
+    volumes:
+      - bitrix_db:/var/lib/mysql
+    networks:
+      - bitrix
+
+  php:
+    build:
+      context: .
+      dockerfile: php.dockerfile
+    environment:
+      TZ: "Europe/Minsk"
+    volumes:
+      - ./www:/var/www/html:delegated
+      - ./log/php.log:/var/log/php.log
+    networks:
+      - bitrix
+
+  cron:
+    build:
+      context: .
+      dockerfile: php.dockerfile
+    environment:
+      TZ: "Europe/Minsk"
+    volumes:
+      - ./www:/var/www/html:delegated
+      - ./log/cron.log:/var/log/cron.log
+      - ./log/php.log:/var/log/php.log
+    networks:
+      - bitrix
+    entrypoint: ["crond", "-f", "-l", "8"]
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      TZ: "Europe/Minsk"
+    depends_on:
+      - mysql
+    ports:
+      - 8080:80
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: secret
+    networks:
+      - bitrix

@@ -40,7 +40,7 @@ services:
       MYSQL_USER: bitrix
       MYSQL_ROOT_PASSWORD: secret
       TZ: "Europe/Minsk"
-    command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci --init-connect='SET NAMES utf8;' --init-connect='SET collation_connection = "utf8_unicode_ci"' --sql_mode="" --innodb_strict_mode=0 --innodb-flush-log-at-trx-commit=0 --transaction-isolation=READ-COMMITTED
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci --init-connect='SET NAMES utf8;' --init-connect='SET collation_connection = "utf8_unicode_ci"' --sql_mode="" --innodb_strict_mode=0 --innodb-flush-log-at-trx-commit=0 --transaction-isolation=READ-COMMITTED --innodb_flush_method=O_DIRECT --innodb_file_per_table=1
     volumes:
       - bitrix_db:/var/lib/mysql
     networks:

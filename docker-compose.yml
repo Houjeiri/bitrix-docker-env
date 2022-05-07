@@ -12,7 +12,7 @@ services:
       context: .
       dockerfile: nginx.dockerfile
     environment:
-      TZ: "Europe/Minsk"
+      TZ: $TIME_ZONE
     depends_on:
       - php
       - mysql
@@ -26,20 +26,18 @@ services:
     networks:
       bitrix:
         aliases:
-          - docker-bitrix.com
-          - www.docker-bitrix.com
+          - $DOMAIN
     extra_hosts:
-      - "docker-bitrix.com:127.0.0.1"
-      - "www.docker-bitrix.com:127.0.0.1"
+      - "${DOMAIN}:127.0.0.1"
 
   mysql:
     image: mysql:5.7
     environment:
-      MYSQL_DATABASE: bitrix
-      MYSQL_PASSWORD: bitrix
-      MYSQL_USER: bitrix
-      MYSQL_ROOT_PASSWORD: secret
-      TZ: "Europe/Minsk"
+      MYSQL_DATABASE: $MYSQL_DATABASE
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+      MYSQL_USER: $MYSQL_USER
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      TZ: $TIME_ZONE
     command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci --init-connect='SET NAMES utf8;' --init-connect='SET collation_connection = "utf8_unicode_ci"' --sql_mode="" --innodb_strict_mode=0 --innodb-flush-log-at-trx-commit=0 --transaction-isolation=READ-COMMITTED --innodb_flush_method=O_DIRECT --innodb_file_per_table=1
     volumes:
       - bitrix_db:/var/lib/mysql
@@ -51,10 +49,10 @@ services:
       context: .
       dockerfile: php.dockerfile
     environment:
-      TZ: "Europe/Minsk"
+      TZ: $TIME_ZONE
     volumes:
       - ./www:/var/www/html:delegated
-      - ./log/php.log:/var/log/php.log
+      - ./log/php.log:/var/log/php.log:delegated
     networks:
       - bitrix
 
@@ -63,11 +61,11 @@ services:
       context: .
       dockerfile: php.dockerfile
     environment:
-      TZ: "Europe/Minsk"
+      TZ: $TIME_ZONE
     volumes:
       - ./www:/var/www/html:delegated
       - ./log/cron.log:/var/log/cron.log
-      - ./log/php.log:/var/log/php.log
+      - ./log/php.log:/var/log/php.log:delegated
     networks:
       - bitrix
     entrypoint: ["crond", "-f", "-l", "8"]
@@ -75,7 +73,7 @@ services:
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     environment:
-      TZ: "Europe/Minsk"
+      TZ: $TIME_ZONE
     depends_on:
       - mysql
     ports:
